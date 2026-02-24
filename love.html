@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心理年龄&性格原型测试</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4ebf5 100%);
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(103,110,144,0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 首页 */
+        .start-page {
+            display: block;
+            text-align: center;
+            padding: 50px 20px;
+        }
+        .start-page.hidden {
+            display: none;
+        }
+        .start-page h1 {
+            font-size: 26px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+        .start-page p {
+            color: #666;
+            font-size: 15px;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+        .start-btn {
+            background: #6c63ff;
+            color: #fff;
+            border: none;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-size: 17px;
+            cursor: pointer;
+        }
+        .start-btn:hover {
+            background: #5a52e0;
+        }
+
+        /* 测试内容 默认隐藏 */
+        .test-content {
+            display: none;
+        }
+        .test-content.show {
+            display: block;
+        }
+
+        .progress {
+            height: 6px;
+            background: #f0f0f0;
+            border-radius: 3px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: #6c63ff;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        .question-card {
+            display: none;
+        }
+        .question-card.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .question-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .option-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .option-item {
+            padding: 15px 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .option-item:hover {
+            background: #f0f0ff;
+        }
+        .option-item.selected {
+            background: #6c63ff;
+            color: #fff;
+            border-color: #5a52e0;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .btn-prev {
+            background: #f0f0f0;
+            color: #666;
+            display: none;
+        }
+        .btn-next {
+            background: #6c63ff;
+            color: #fff;
+        }
+        .btn-submit {
+            background: #28a745;
+            color: #fff;
+            margin: 0 auto;
+            display: none;
+        }
+
+        /* 结果页 */
+        .result-page {
+            display: none;
+            text-align: center;
+            padding: 20px 0;
+            animation: fadeIn 0.5s;
+        }
+        .result-page.show {
+            display: block;
+        }
+        .result-age {
+            font-size: 46px;
+            color: #6c63ff;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .result-age span {
+            font-size: 22px;
+            font-weight: normal;
+        }
+        .result-role {
+            font-size: 22px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .result-tags {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin: 20px 0;
+        }
+        .tag {
+            padding: 6px 12px;
+            background: #e8e7ff;
+            color: #6c63ff;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .radar-container {
+            width: 100%;
+            max-width: 380px;
+            margin: 0 auto 30px;
+        }
+        .result-desc {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.6;
+            text-align: left;
+            margin-bottom: 30px;
+        }
+        .restart-btn {
+            background: #6c63ff;
+            color: #fff;
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 首页 → 点开始才进题目 -->
+    <div class="start-page">
+        <h1>心理年龄 & 性格原型测试</h1>
+        <p>测测你的灵魂多少岁<br>又藏着怎样的性格底色</p>
+        <button class="start-btn">开始探索 →</button>
+    </div>
+
+    <!-- 测试内容 默认隐藏 -->
+    <div class="test-content">
+        <div class="progress">
+            <div class="progress-bar"></div>
+        </div>
+
+        <!-- 10题 -->
+        <div class="question-card active" data-index="0">
+            <div class="question-title">1. 面对突发问题，你第一反应是？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">慌慌张张，希望有人立刻帮忙</div>
+                <div class="option-item" data-score="2">先抱怨，再慢慢想办法解决</div>
+                <div class="option-item" data-score="3">冷静分析，先找解决思路再行动</div>
+                <div class="option-item" data-score="4">立刻行动，边做边调整方案</div>
+                <div class="option-item" data-score="5">统筹全局，提前预判风险再动手</div>
+            </div>
+        </div>
+
+        <div class="question-card" data-index="1">
+            <div class="question-title">2. 朋友向你倾诉烦恼，你会？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">跟着一起吐槽，陪TA哭</div>
+                <div class="option-item" data-score="2">说些好听的话安慰，不发表意见</div>
+                <div class="option-item" data-score="3">耐心倾听，帮TA分析问题根源</div>
+                <div class="option-item" data-score="4">直接给解决方案，让TA照做</div>
+                <div class="option-item" data-score="5">结合TA的处境，给定制化建议并规避风险</div>
+            </div>
+        </div>
+
+        <div class="question-card" data-index="2">
+            <div class="question-title">3. 制定周末计划时，你通常？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">临时起意，想做什么就做什么</div>
+                <div class="option-item" data-score="2">只定大概方向，细节随缘</div>
+                <div class="option-item" data-score="3">做好详细清单，严格按计划执行</div>
+                <div class="option-item" data-score="4">定好目标，灵活调整执行节奏</div>
+                <div class="option-item" data-score="5">提前规划，同时准备备用方案应对突发情况</div>
+            </div>
+        </div>
+
+        <div class="question-card" data-index="3">
+            <div class="question-title">4. 遇到超出能力的挑战，你会？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">直接放弃，觉得自己做不到</div>
+                <div class="option-item" data-score="2">犹豫很久，最终找借口推脱</div>
+                <div class="option-item" data-score="3">硬着头皮上，尽全力尝试</div>
+                <div class="option-item" data-score="4">请教他人，快速学习后再尝试</div>
+                <div class="option-item" data-score="5">评估自身优势，整合资源后攻克难关</div>
+            </div>
+        </div>
+
+        <div class="question-card" data-index="4">
+            <div class="question-title">5. 社交场合中，你更倾向于？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">躲在角落，只和熟悉的人说话</div>
+                <div class="option-item" data-score="2">被动参与，别人找我才交流</div>
+                <div class="option-item" data-score="3">主动结识新朋友，热情交流</div>
+                <div class="option-item" data-score="4">观察全场，和关键人物建立联系</div>
+                <div class="option-item" data-score="5">从容应对，兼顾各方情绪，把控社交节奏</div>
+            </div>
+        </div>
+
+        <div class="question-card" data-index="5">
+            <div class="question-title">6. 对“责任”二字，你的理解是？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">麻烦的事，能躲就躲</div>
+                <div class="option-item" data-score="2">别人交给我的事，尽量做完</div>
+                <div class="option-item" data-score="3">自己做的事，必须负责到底</div>
+                <div class="option-item" data-score="4">不仅对自己负责，也对身边人负责</div>
+                <div class="option-item" data-score="5">责任是底线，兼顾自身与集体，预判行为后果</div>
+            </div>
+        </div>
+
+        <div class="question-card" data-index="6">
+            <div class="question-title">7. 收到他人的批评，你会？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">立刻委屈，忍不住哭</div>
+                <div class="option-item" data-score="2">表面接受，心里不服气</div>
+                <div class="option-item" data-score="3">反思自己，有则改之无则加勉</div>
+                <div class="option-item" data-score="4">和对方争论，证明自己没错</div>
+                <div class="option-item" data-score="5">理性分析批评的合理性，结合自身优化不足</div>
+            </div>
+        </div>
+
+        <div class="question-card" data-index="7">
+            <div class="question-title">8. 做决定时，你主要依靠？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">直觉和心情，喜欢就好</div>
+                <div class="option-item" data-score="2">别人的建议，跟着大众走</div>
+                <div class="option-item" data-score="3">过往经验，按老办法来</div>
+                <div class="option-item" data-score="4">利弊分析，选最优解</div>
+                <div class="option-item" data-score="5">直觉+理性，兼顾当下与长远影响</div>
+            </div>
+        </div>
+
+        <div class="question-card" data-index="8">
+            <div class="question-title">9. 生活中遇到挫折，你会？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">一蹶不振，需要很久才能恢复</div>
+                <div class="option-item" data-score="2">暂时逃避，假装没发生</div>
+                <div class="option-item" data-score="3">自我鼓励，慢慢调整状态</div>
+                <div class="option-item" data-score="4">总结教训，避免再犯同样的错</div>
+                <div class="option-item" data-score="5">快速调整心态，将挫折转化为成长的契机</div>
+            </div>
+        </div>
+
+        <div class="question-card" data-index="9">
+            <div class="question-title">10. 你对“未来”的态度是？</div>
+            <div class="option-list">
+                <div class="option-item" data-score="1">从不想，过好当下就行</div>
+                <div class="option-item" data-score="2">想过，但觉得遥不可及</div>
+                <div class="option-item" data-score="3">有模糊的目标，慢慢靠近</div>
+                <div class="option-item" data-score="4">有清晰的目标，制定计划逐步实现</div>
+                <div class="option-item" data-score="5">布局长远，同时把握当下，为未来预留多种可能</div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <button class="btn btn-prev">上一题</button>
+            <button class="btn btn-next">下一题</button>
+            <button class="btn btn-submit">提交测试</button>
+        </div>
+    </div>
+
+    <!-- 结果页 -->
+    <div class="result-page">
+        <h2>你的测试结果</h2>
+        <div class="result-age"><span>心理年龄：</span><span id="resultAge">--</span><span>岁</span></div>
+        <div class="result-role" id="resultRole">性格原型：--</div>
+        <div class="result-tags" id="resultTags">
+            <!-- 动态生成标签 -->
+        </div>
+
+        <div class="radar-container">
+            <canvas id="radarChart" width="380" height="380"></canvas>
+        </div>
+
+        <div class="result-desc" id="resultDesc">
+            <!-- 动态生成描述 -->
+        </div>
+
+        <button class="restart-btn">重新测试</button>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 30种结果库
+    const resultLibrary = [
+        {
+            minScore: 10, maxScore: 15,
+            age: 8,
+            role: "天真孩童",
+            tags: ["#天真烂漫", "#无忧无虑", "#好奇心强", "#情绪化", "#缺乏规划"],
+            desc: "<strong>核心优势：</strong>你像个永远长不大的孩子，对世界充满好奇，能轻易感染身边的人。<br><br><strong>潜在盲点：</strong>容易情绪化，缺乏长期规划，遇到压力容易逃避。<br><br><strong>性格解读：</strong>你的心理年龄停留在无忧无虑的童年，对世界充满好奇，却也容易在现实面前感到迷茫。",
+            radarData: [40, 35, 30, 25, 85, 50, 60, 90]
+        },
+        {
+            minScore: 16, maxScore: 20,
+            age: 11,
+            role: "教父 / 诸葛亮",
+            tags: ["#稳重", "#深思熟虑", "#可靠", "#城府", "#掌控力"],
+            desc: "<strong>核心优势：</strong>拥有无与伦比的创造力，自带感染他人的快乐能量，直觉格外敏锐。<br><br><strong>潜在盲点：</strong>偶尔缺乏长期规划，情绪容易受到外界影响而波动。<br><br><strong>性格解读：</strong>你有着远超实际年龄的沉稳与谋略，像“教父”或“诸葛亮”一样擅长统筹全局、规避风险。但你的心理内核依旧保持着11岁的纯粹与灵动，这份反差让你既有掌控局面的能力，又有感知美好的初心。",
+            radarData: [90, 85, 88, 82, 60, 80, 85, 70]
+        },
+        {
+            minScore: 21, maxScore: 25,
+            age: 14,
+            role: "热血少年",
+            tags: ["#热血", "#冲动", "#理想主义", "#行动力强", "#抗逆力弱"],
+            desc: "<strong>核心优势：</strong>你充满激情与冲劲，行动力极强，对未来抱有无限憧憬。<br><br><strong>潜在盲点：</strong>容易冲动行事，缺乏深思熟虑，抗逆力较弱。<br><br><strong>性格解读：</strong>你的心理年龄处于热血沸腾的少年期，对世界充满理想主义，却也容易在挫折面前一蹶不振。",
+            radarData: [50, 60, 55, 40, 90, 65, 70, 85]
+        },
+        {
+            minScore: 26, maxScore: 30,
+            age: 17,
+            role: "文艺青年",
+            tags: ["#敏感", "#细腻", "#创造力强", "#自我封闭", "#情绪化"],
+            desc: "<strong>核心优势：</strong>你拥有敏锐的感知力和丰富的内心世界，创造力惊人。<br><br><strong>潜在盲点：</strong>容易陷入自我封闭，情绪波动大，难以适应现实压力。<br><br><strong>性格解读：</strong>你的心理年龄停留在敏感细腻的青春期，对美与情感有独特的理解，却也容易在现实面前感到格格不入。",
+            radarData: [45, 50, 45, 35, 85, 75, 80, 90]
+        },
+        {
+            minScore: 31, maxScore: 35,
+            age: 20,
+            role: "独立青年",
+            tags: ["#独立", "#自我", "#目标明确", "#社交疏离", "#缺乏包容"],
+            desc: "<strong>核心优势：</strong>你目标明确，行动力强，能够独立应对生活中的各种挑战。<br><br><strong>潜在盲点：</strong>过于自我，缺乏包容心，社交关系疏离。<br><br><strong>性格解读：</strong>你的心理年龄处于独立自强的青年期，对自己的人生有清晰规划，却也容易在人际关系中显得冷漠。",
+            radarData: [70, 65, 75, 60, 70, 55, 85, 65]
+        },
+        {
+            minScore: 36, maxScore: 40,
+            age: 23,
+            role: "职场精英",
+            tags: ["#高效", "#理性", "#责任感强", "#工作狂", "#缺乏生活热情"],
+            desc: "<strong>核心优势：</strong>你高效理性，责任感极强，是团队中不可或缺的核心力量。<br><br><strong>潜在盲点：</strong>容易成为工作狂，缺乏生活热情，忽略了身边的美好。<br><br><strong>性格解读：</strong>你的心理年龄处于成熟稳重的职场期，对工作和责任有深刻理解，却也容易在忙碌中迷失自我。",
+            radarData: [85, 80, 90, 75, 50, 70, 75, 60]
+        },
+        {
+            minScore: 41, maxScore: 45,
+            age: 26,
+            role: "家庭守护者",
+            tags: ["#温柔", "#顾家", "#包容力强", "#过度牺牲", "#自我迷失"],
+            desc: "<strong>核心优势：</strong>你温柔体贴，包容力强，是家庭中最可靠的守护者。<br><br><strong>潜在盲点：</strong>容易过度牺牲自我，忽略了自己的需求和梦想。<br><br><strong>性格解读：</strong>你的心理年龄处于温暖包容的家庭期，对家人充满爱与责任，却也容易在付出中迷失自我。",
+            radarData: [75, 70, 85, 65, 60, 90, 80, 55]
+        },
+        {
+            minScore: 46, maxScore: 50,
+            age: 30,
+            role: "人生导师",
+            tags: ["#智慧", "#通透", "#共情力强", "#说教欲", "#缺乏激情"],
+            desc: "<strong>核心优势：</strong>你智慧通透，共情力强，总能给身边的人提供宝贵的人生建议。<br><br><strong>潜在盲点：</strong>容易产生说教欲，缺乏对新鲜事物的激情。<br><br><strong>性格解读：</strong>你的心理年龄处于通透豁达的中年期，对人生有深刻的洞察，却也容易在循循善诱中显得刻板。",
+            radarData: [95, 90, 85, 80, 40, 85, 90, 50]
+        },
+        {
+            minScore: 10, maxScore: 15,
+            age: 7,
+            role: "无忧无虑的小顽童",
+            tags: ["#活泼好动", "#天真无邪", "#注意力不集中", "#依赖性强", "#缺乏责任感"],
+            desc: "<strong>核心优势：</strong>你像个小太阳，充满活力，能轻易给身边的人带来快乐。<br><br><strong>潜在盲点：</strong>注意力难以集中，依赖性强，缺乏基本的责任感。<br><br><strong>性格解读：</strong>你的心理年龄停留在无忧无虑的童年早期，对世界充满好奇，却也需要他人的持续照顾和引导。",
+            radarData: [30, 25, 20, 15, 90, 40, 50, 95]
+        },
+        {
+            minScore: 16, maxScore: 20,
+            age: 12,
+            role: "叛逆少年",
+            tags: ["#特立独行", "#反传统", "#自我意识强", "#攻击性强", "#缺乏合作精神"],
+            desc: "<strong>核心优势：</strong>你敢于挑战权威，有强烈的自我意识，不随波逐流。<br><br><strong>潜在盲点：</strong>容易表现出攻击性，缺乏团队合作精神，难以融入集体。<br><br><strong>性格解读：</strong>你的心理年龄处于叛逆的青春期早期，对规则和传统充满质疑，却也容易在对抗中孤立自己。",
+            radarData: [40, 35, 30, 45, 70, 35, 60, 80]
+        },
+        {
+            minScore: 21, maxScore: 25,
+            age: 15,
+            role: "追梦少女",
+            tags: ["#浪漫", "#理想主义", "#行动力强", "#不切实际", "#抗逆力弱"],
+            desc: "<strong>核心优势：</strong>你对未来充满浪漫的想象，行动力强，敢于追求自己的梦想。<br><br><strong>潜在盲点：</strong>想法过于理想化，不切实际，遇到挫折容易崩溃。<br><br><strong>性格解读：</strong>你的心理年龄处于充满幻想的少女期，对爱情和未来抱有无限憧憬，却也容易在现实面前感到幻灭。",
+            radarData: [45, 55, 40, 30, 95, 60, 70, 85]
+        },
+        {
+            minScore: 26, maxScore: 30,
+            age: 18,
+            role: "社交达人",
+            tags: ["#外向", "#人脉广", "#感染力强", "#缺乏深度", "#容易随波逐流"],
+            desc: "<strong>核心优势：</strong>你外向开朗，人脉广泛，能轻易融入任何社交场合。<br><br><strong>潜在盲点：</strong>人际关系缺乏深度，容易随波逐流，迷失自我。<br><br><strong>性格解读：</strong>你的心理年龄处于八面玲珑的青年早期，擅长社交，却也容易在人群中失去自我。",
+            radarData: [65, 90, 60, 50, 75, 70, 65, 75]
+        },
+        {
+            minScore: 31, maxScore: 35,
+            age: 21,
+            role: "技术宅",
+            tags: ["#专注", "#逻辑强", "#专业能力强", "#社交恐惧", "#缺乏生活技能"],
+            desc: "<strong>核心优势：</strong>你专注力极强，逻辑思维缜密，在专业领域有过人的天赋。<br><br><strong>潜在盲点：</strong>有社交恐惧，缺乏基本的生活技能，难以适应现实社会。<br><br><strong>性格解读：</strong>你的心理年龄处于沉浸在自己世界的青年期，对专业知识充满热情，却也容易在现实生活中显得笨拙。",
+            radarData: [55, 40, 50, 65, 40, 55, 80, 60]
+        },
+        {
+            minScore: 36, maxScore: 40,
+            age: 24,
+            role: "斜杠青年",
+            tags: ["#多才多艺", "#适应力强", "#好奇心强", "#缺乏深耕", "#容易焦虑"],
+            desc: "<strong>核心优势：</strong>你多才多艺，适应力强，对世界充满好奇，总能快速学习新技能。<br><br><strong>潜在盲点：</strong>容易浅尝辄止，缺乏深耕精神，容易陷入选择焦虑。<br><br><strong>性格解读：</strong>你的心理年龄处于多元探索的青年期，对人生有多种可能性的想象，却也容易在众多选择中感到迷茫。",
+            radarData: [60, 70, 65, 55, 85, 65, 75, 90]
+        },
+        {
+            minScore: 41, maxScore: 45,
+            age: 27,
+            role: "都市丽人",
+            tags: ["#精致", "#独立", "#品味高", "#物质主义", "#缺乏安全感"],
+            desc: "<strong>核心优势：</strong>你精致独立，品味高雅，对生活品质有极高的追求。<br><br><strong>潜在盲点：</strong>容易陷入物质主义，缺乏内心的安全感，需要不断用外在事物证明自己。<br><br><strong>性格解读：</strong>你的心理年龄处于精致利己的都市期，对自我形象和生活品质有严格要求，却也容易在物质追求中感到空虚。",
+            radarData: [70, 85, 60, 50, 70, 75, 80, 65]
+        },
+        {
+            minScore: 46, maxScore: 50,
+            age: 31,
+            role: "佛系青年",
+            tags: ["#淡然", "#通透", "#情绪稳定", "#缺乏动力", "#容易躺平"],
+            desc: "<strong>核心优势：</strong>你情绪稳定，淡然通透，对得失看得很开，不易被外界干扰。<br><br><strong>潜在盲点：</strong>容易缺乏动力，选择躺平，对未来失去热情。<br><br><strong>性格解读：</strong>你的心理年龄处于看破红尘的中年早期，对人生有超然的态度，却也容易在消极避世中错过机会。",
+            radarData: [90, 75, 55, 80, 45, 85, 90, 40]
+        },
+        {
+            minScore: 10, maxScore: 15,
+            age: 9,
+            role: "好奇宝宝",
+            tags: ["#求知欲强", "#观察力敏锐", "#十万个为什么", "#容易分心", "#缺乏耐心"],
+            desc: "<strong>核心优势：</strong>你对世界充满无限的好奇心，观察力敏锐，总能发现别人忽略的细节。<br><br><strong>潜在盲点：</strong>注意力容易分散，缺乏耐心，难以深入钻研一件事。<br><br><strong>性格解读：</strong>你的心理年龄停留在对世界充满问号的童年，对一切新鲜事物都充满兴趣，却也容易在浅尝辄止中错过深度。",
+            radarData: [35, 40, 25, 20, 80, 45, 55, 95]
+        },
+        {
+            minScore: 16, maxScore: 20,
+            age: 13,
+            role: "中二少年",
+            tags: ["#幻想", "#自我中心", "#正义感强", "#脱离现实", "#容易被煽动"],
+            desc: "<strong>核心优势：</strong>你有强烈的正义感和英雄情结，对世界有自己独特的幻想。<br><br><strong>潜在盲点：</strong>容易脱离现实，以自我为中心，容易被极端思想煽动。<br><br><strong>性格解读：</strong>你的心理年龄处于充满幻想的青春期，相信自己是与众不同的主角，却也容易在现实面前碰得头破血流。",
+            radarData: [40, 30, 35, 30, 75, 40, 50, 85]
+        },
+        {
+            minScore: 21, maxScore: 25,
+            age: 16,
+            role: "文艺少女",
+            tags: ["#多愁善感", "#共情力强", "#审美独特", "#玻璃心", "#容易emo"],
+            desc: "<strong>核心优势：</strong>你共情力极强，审美独特，对情感和艺术有敏锐的感知力。<br><br><strong>潜在盲点：</strong>玻璃心，容易emo，难以承受现实的打击。<br><br><strong>性格解读：</strong>你的心理年龄处于敏感细腻的青春期，对情感和艺术有独特的理解，却也容易在情绪波动中感到痛苦。",
+            radarData: [35, 45, 30, 25, 90, 80, 85, 90]
+        },
+        {
+            minScore: 26, maxScore: 30,
+            age: 19,
+            role: "酷盖",
+            tags: ["#高冷", "#神秘", "#特立独行", "#拒人千里", "#缺乏温度"],
+            desc: "<strong>核心优势：</strong>你高冷神秘，特立独行，有自己独特的风格和态度。<br><br><strong>潜在盲点：</strong>拒人千里之外，缺乏情感温度，难以建立亲密关系。<br><br><strong>性格解读：</strong>你的心理年龄处于刻意保持距离的青年期，用高冷的外壳保护自己，却也容易在孤独中感到寒冷。",
+            radarData: [60, 40, 50, 55, 50, 45, 60, 65]
+        },
+        {
+            minScore: 31, maxScore: 35,
+            age: 22,
+            role: "卷王",
+            tags: ["#内卷", "#上进心强", "#执行力强", "#焦虑", "#完美主义"],
+            desc: "<strong>核心优势：</strong>你上进心极强，执行力惊人，对自己有极高的要求。<br><br><strong>潜在盲点：</strong>容易陷入过度内卷，产生严重的焦虑，是个完美主义者。<br><br><strong>性格解读：</strong>你的心理年龄处于竞争激烈的青年期，对成功有强烈的渴望，却也容易在永无止境的追求中感到疲惫。",
+            radarData: [75, 65, 80, 60, 55, 60, 70, 75]
+        },
+        {
+            minScore: 36, maxScore: 40,
+            age: 25,
+            role: "人间清醒",
+            tags: ["#理性", "#通透", "#洞察力强", "#冷漠", "#缺乏共情"],
+            desc: "<strong>核心优势：</strong>你理性通透，洞察力极强，总能一眼看穿事物的本质。<br><br><strong>潜在盲点：</strong>容易显得冷漠，缺乏共情能力，难以理解他人的情感。<br><br><strong>性格解读：</strong>你的心理年龄处于看透世事的青年期，对人性有深刻的洞察，却也容易在清醒中感到孤独。",
+            radarData: [90, 70, 75, 85, 40, 65, 80, 60]
+        },
+        {
+            minScore: 41, maxScore: 45,
+            age: 28,
+            role: "老好人",
+            tags: ["#随和", "#包容", "#乐于助人", "#讨好型人格", "#缺乏边界感"],
+            desc: "<strong>核心优势：</strong>你随和包容，乐于助人，是团队中最受欢迎的粘合剂。<br><br><strong>潜在盲点：</strong>是典型的讨好型人格，缺乏边界感，容易委屈自己。<br><br><strong>性格解读：</strong>你的心理年龄处于温和包容的成年期，总是优先考虑他人的感受，却也容易在过度付出中失去自我。",
+            radarData: [65, 80, 85, 50, 60, 95, 85, 55]
+        },
+        {
+            minScore: 46, maxScore: 50,
+            age: 32,
+            role: "智者",
+            tags: ["#智慧", "#豁达", "#慈悲", "#疏离", "#难以接近"],
+            desc: "<strong>核心优势：</strong>你智慧豁达，心怀慈悲，对人生有超然的理解。<br><br><strong>潜在盲点：</strong>容易显得疏离，难以接近，让人产生距离感。<br><br><strong>性格解读：</strong>你的心理年龄处于超然物外的中年期，对世界有深刻的悲悯，却也容易在高处不胜寒中感到孤独。",
+            radarData: [95, 85, 90, 90, 35, 90, 95, 45]
+        },
+        {
+            minScore: 10, maxScore: 15,
+            age: 6,
+            role: "小哭包",
+            tags: ["#敏感", "#脆弱", "#需要保护", "#抗压能力差", "#缺乏安全感"],
+            desc: "<strong>核心优势：</strong>你情感细腻，能敏锐地感知到他人的情绪，是个很好的倾听者。<br><br><strong>潜在盲点：</strong>抗压能力极差，缺乏安全感，需要他人的持续保护和安慰。<br><br><strong>性格解读：</strong>你的心理年龄停留在需要被呵护的幼年，对世界充满恐惧，却也能用最纯粹的方式去爱和感受。",
+            radarData: [20, 25, 15, 10, 70, 55, 45, 80]
+        },
+        {
+            minScore: 16, maxScore: 20,
+            age: 10,
+            role: "小大人",
+            tags: ["#早熟", "#懂事", "#体贴", "#失去童真", "#心理负担重"],
+            desc: "<strong>核心优势：</strong>你比同龄人更加懂事体贴，能很好地照顾他人的感受。<br><br><strong>潜在盲点：</strong>过早失去童真，心理负担过重，难以享受童年的快乐。<br><br><strong>性格解读：</strong>你的心理年龄远超实际年龄，过早地承担了不属于自己的责任，却也因此错过了无忧无虑的时光。",
+            radarData: [60, 55, 65, 50, 40, 70, 75, 60]
+        },
+        {
+            minScore: 21, maxScore: 25,
+            age: 14,
+            role: "热血笨蛋",
+            tags: ["#热血", "#单纯", "#行动力强", "#冲动", "#缺乏思考"],
+            desc: "<strong>核心优势：</strong>你热血单纯，行动力惊人，对世界充满无畏的勇气。<br><br><strong>潜在盲点：</strong>容易冲动行事，缺乏深思熟虑，常常好心办坏事。<br><br><strong>性格解读：</strong>你的心理年龄处于热血沸腾的少年期，对正义和理想有执着的追求，却也容易在冲动中付出代价。",
+            radarData: [45, 50, 55, 60, 95, 50, 60, 85]
+        },
+        {
+            minScore: 26, maxScore: 30,
+            age: 17,
+            role: "矛盾体",
+            tags: ["#敏感", "#理性", "#自我拉扯", "#内耗严重", "#难以自洽"],
+            desc: "<strong>核心优势：</strong>你同时拥有感性和理性的双重特质，对自己有深刻的认知。<br><br><strong>潜在盲点：</strong>容易陷入自我拉扯，内耗严重，难以与自己和解。<br><br><strong>性格解读：</strong>你的心理年龄处于充满矛盾的青春期，在理想与现实、感性与理性之间反复横跳，却也在这种拉扯中不断成长。",
+            radarData: [50, 45, 50, 45, 70, 65, 80, 75]
+        },
+        {
+            minScore: 31, maxScore: 35,
+            age: 20,
+            role: "冒险家",
+            tags: ["#勇敢", "#好奇", "#热爱自由", "#缺乏规划", "#容易冲动"],
+            desc: "<strong>核心优势：</strong>你勇敢无畏，对世界充满好奇，热爱自由和探索。<br><br><strong>潜在盲点：</strong>缺乏长期规划，容易冲动行事，难以安定下来。<br><br><strong>性格解读：</strong>你的心理年龄处于渴望冒险的青年期，对未知充满向往，却也容易在漂泊中感到迷茫。",
+            radarData: [60, 70, 55, 80, 90, 60, 70, 95]
+        },
+        {
+            minScore: 36, maxScore: 50,
+            age: 25,
+            role: "实干家",
+            tags: ["#务实", "#高效", "#执行力强", "#缺乏想象力", "#过于功利"],
+            desc: "<strong>核心优势：</strong>你务实高效，执行力惊人，总能把想法变成现实。<br><br><strong>潜在盲点：</strong>缺乏想象力，过于功利，容易忽略过程中的美好。<br><br><strong>性格解读：</strong>你的心理年龄处于成熟稳重的成年期，对目标有清晰的认知和强大的执行力，却也容易在追求结果中错过沿途的风景。",
+            radarData: [80, 75, 85, 75, 50, 65, 70, 60]
+        }
+    ];
+
+    const startPage = document.querySelector('.start-page');
+    const testContent = document.querySelector('.test-content');
+    const startBtn = document.querySelector('.start-btn');
+    const questionCards = document.querySelectorAll('.question-card');
+    const progressBar = document.querySelector('.progress-bar');
+    const prevBtn = document.querySelector('.btn-prev');
+    const nextBtn = document.querySelector('.btn-next');
+    const submitBtn = document.querySelector('.btn-submit');
+    const resultPage = document.querySelector('.result-page');
+    const restartBtn = document.querySelector('.restart-btn');
+    const resultAgeEl = document.getElementById('resultAge');
+    const resultRoleEl = document.getElementById('resultRole');
+    const resultTagsEl = document.getElementById('resultTags');
+    const resultDescEl = document.getElementById('resultDesc');
+
+    let currentIndex = 0;
+    const total = 10;
+    let selected = [];
+
+    // 点击开始 → 显示题目
+    startBtn.addEventListener('click', () => {
+        startPage.classList.add('hidden');
+        testContent.classList.add('show');
+        updateProgress();
+    });
+
+    // 选项点击
+    document.querySelectorAll('.option-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const card = this.closest('.question-card');
+            const idx = parseInt(card.dataset.index);
+            card.querySelectorAll('.option-item').forEach(i => i.classList.remove('selected'));
+            this.classList.add('selected');
+            selected[idx] = parseInt(this.dataset.score);
+        });
+    });
+
+    // 下一题
+    nextBtn.addEventListener('click', () => {
+        const now = questionCards[currentIndex];
+        if (!now.querySelector('.option-item.selected')) {
+            alert('请先选择一个选项');
+            return;
+        }
+        now.classList.remove('active');
+        currentIndex++;
+        questionCards[currentIndex].classList.add('active');
+        updateProgress();
+        updateBtn();
+    });
+
+    // 上一题
+    prevBtn.addEventListener('click', () => {
+        questionCards[currentIndex].classList.remove('active');
+        currentIndex--;
+        questionCards[currentIndex].classList.add('active');
+        updateProgress();
+        updateBtn();
+    });
+
+    // 提交
+    submitBtn.addEventListener('click', () => {
+        // 计算总分
+        const totalScore = selected.reduce((a, b) => a + b, 0);
+        // 匹配结果
+        const matchedResult = resultLibrary.find(r => totalScore >= r.minScore && totalScore <= r.maxScore);
+        // 渲染结果
+        resultAgeEl.textContent = matchedResult.age;
+        resultRoleEl.textContent = `性格原型：${matchedResult.role}`;
+        resultTagsEl.innerHTML = matchedResult.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+        resultDescEl.innerHTML = matchedResult.desc;
+        // 显示结果页
+        testContent.classList.remove('show');
+        resultPage.classList.add('show');
+        // 绘制雷达图
+        drawChart(matchedResult.radarData);
+    });
+
+    // 重置
+    restartBtn.addEventListener('click', () => location.reload());
+
+    function updateProgress() {
+        progressBar.style.width = ((currentIndex + 1) / total * 100) + '%';
+    }
+
+    function updateBtn() {
+        prevBtn.style.display = currentIndex > 0 ? 'block' : 'none';
+        if (currentIndex === total - 1) {
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'block';
+        } else {
+            nextBtn.style.display = 'block';
+            submitBtn.style.display = 'none';
+        }
+    }
+
+    // 八边形雷达图
+    function drawChart(data) {
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['情绪稳定','社交从容','责任担当','抗逆力','生活热情','包容度','自我接纳','好奇心'],
+                datasets: [{
+                    data: data,
+                    backgroundColor: 'rgba(108,99,255,0.2)',
+                    borderColor: '#6c63ff',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#6c63ff'
+                }]
+            },
+            options: {
+                scales: { r: { suggestedMin:0, suggestedMax:100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+</script>
+</body>
+</html>
